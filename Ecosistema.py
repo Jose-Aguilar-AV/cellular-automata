@@ -3,24 +3,22 @@ import random
 
 class EcosystemAutomaton(Scene):
     def construct(self):
-        # Configuración
-        grid_size = 15  # Tamaño de la cuadrícula
-        cell_size = 0.45  # Tamaño de cada celda
-        steps = 20  # Número de pasos de simulación
-        max_animations = 70  # Límite de animaciones
-        animation_count = 0  # Contador de animaciones
+        
+        grid_size = 15  
+        cell_size = 0.45 
+        steps = 20  
+        max_animations = 70  
+        animation_count = 0  
 
-        # Leyenda
         legend = VGroup(
-            Text("Leyenda:", font_size=24),
+            Text("Datos:", font_size=24),
             Text("Recurso (verde)", font_size=20, color=GREEN),
             Text("Presa (blanco)", font_size=20, color=WHITE),
             Text("Depredador (naranja)", font_size=20, color=ORANGE),
         ).arrange(DOWN, aligned_edge=LEFT).to_corner(UP + LEFT)
 
-        # Crear la cuadrícula
         grid = VGroup()
-        cells = {}  # Diccionario para almacenar las células
+        cells = {}  
         
         for i in range(grid_size):
             for j in range(grid_size):
@@ -33,7 +31,6 @@ class EcosystemAutomaton(Scene):
         grid.set_stroke(width=0.5, color=GRAY)
         self.play(Create(grid), Write(legend))
 
-        # Inicializar elementos
         def random_position():
             return (random.randint(0, grid_size - 1), random.randint(0, grid_size - 1))
 
@@ -41,9 +38,9 @@ class EcosystemAutomaton(Scene):
             i, j = position
             circle = Dot(radius=0.2, color=color)
             circle.move_to(cells[(i, j)].get_center())
-            circle.position = (i, j)  # Agregar atributo personalizado
-            circle.steps_since_eat = 0  # Contador para reproducción y muerte
-            circle.recent_meals = 0  # Contador para reproducción consecutiva
+            circle.position = (i, j)  
+            circle.steps_since_eat = 0  
+            circle.recent_meals = 0  
             return circle
 
         resources = [add_element(random_position(), GREEN) for _ in range(15)]
@@ -53,7 +50,6 @@ class EcosystemAutomaton(Scene):
         elements = VGroup(*resources, *preys, *predators)
         self.play(FadeIn(elements))
 
-        # Reglas de interacción
         def get_neighbors(position):
             i, j = position
             neighbors = []
@@ -87,12 +83,11 @@ class EcosystemAutomaton(Scene):
             i, j = prey.position
             prey.steps_since_eat += 1
 
-            # Buscar recursos en celdas vecinas
             found_resource = False
             for di in [-1, 0, 1]:
                 for dj in [-1, 0, 1]:
                     if di == 0 and dj == 0:
-                        continue  # Ignorar la celda propia
+                        continue  
                     ni, nj = i + di, j + dj
                     if 0 <= ni < grid_size and 0 <= nj < grid_size:
                         for resource in resources:
@@ -102,8 +97,7 @@ class EcosystemAutomaton(Scene):
                                 prey.steps_since_eat = 0
                                 prey.recent_meals += 1
 
-                                # Reproducción si ha comido un recurso
-                                if prey.recent_meals == 1:  # Reproducirse después de 2 recursos comidos
+                                if prey.recent_meals == 1:  
                                     neighbors = get_neighbors(prey.position)
                                     random.shuffle(neighbors)
                                     for ni, nj in neighbors:
@@ -113,29 +107,25 @@ class EcosystemAutomaton(Scene):
                                             play_with_limit(FadeIn(new_prey))
                                             prey.recent_meals = 0
                                             break
-                                break  # Comer solo un recurso
+                                break  
                         if found_resource:
                             break
             if not found_resource:
                 move_element(prey, preys + predators, grid_size)
                             
-            # Morir si no ha comido en 5 pasos
             if prey.steps_since_eat > 6:
                 preys.remove(prey)
                 play_with_limit(FadeOut(prey))
-
-
 
 
         def process_predator(predator, preys, predators):
             i, j = predator.position
             predator.steps_since_eat += 1
 
-            # Buscar presas en celdas vecinas
             for di in [-1, 0, 1]:
                 for dj in [-1, 0, 1]:
                     if di == 0 and dj == 0:
-                        continue  # Ignorar la celda propia
+                        continue 
                     ni, nj = i + di, j + dj
                     if 0 <= ni < grid_size and 0 <= nj < grid_size:
                         for prey in preys:
@@ -146,7 +136,6 @@ class EcosystemAutomaton(Scene):
                                 predator.steps_since_eat = 0
                                 predator.recent_meals += 1
 
-                                # Reproducción una vez que se ha comido una presa
                                 neighbors = get_neighbors(predator.position)
                                 random.shuffle(neighbors)
                                 for ni, nj in neighbors:
@@ -155,14 +144,11 @@ class EcosystemAutomaton(Scene):
                                         predators.append(new_predator)
                                         play_with_limit(FadeIn(new_predator))
                                         break
-                                break  # Comer solo una presa
+                                break  
                             
-            # Morir si no ha comido en 7 pasos
             if predator.steps_since_eat > 5:
                 predators.remove(predator)
                 play_with_limit(FadeOut(predator))
-
-
 
 
         def process_resources(resources):
@@ -172,14 +158,13 @@ class EcosystemAutomaton(Scene):
                 random.shuffle(neighbors)
                 for ni, nj in neighbors:
                     if not any(e.position == (ni, nj) for e in resources + preys + predators):
-                        if random.random() < 0.36:  # Incrementar tasa de reproducción ligeramente
+                        if random.random() < 0.36:  
                             new_resource = add_element((ni, nj), GREEN)
                             new_resources.append(new_resource)
                         break
             resources.extend(new_resources)
             play_with_limit(FadeIn(VGroup(*new_resources)))
 
-        # Ciclo de simulación
         for _ in range(steps):
             for prey in list(preys):
                 move_element(prey, preys + predators, grid_size)
