@@ -1,8 +1,8 @@
 Proyecto -- ECOSISTEMA EN AUTOMATAS CELULARES --
 
 INTEGRANTES:
-Jose David Aguilar Vargas
-Yovani Andres Tarazona Castellanos
+- Jose David Aguilar Vargas
+- Yovani Andres Tarazona Castellanos
 
 Enlace de video You tube sobre el proyecto
 
